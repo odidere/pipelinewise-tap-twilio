@@ -1,6 +1,3 @@
-import json
-import sys
-
 import backoff
 import requests
 import singer
@@ -183,26 +180,6 @@ class TwilioClient:
                 auth=(self.__account_sid, self.__auth_token),
                 json=json,
                 **kwargs)
-            try:
-                raw_data = response.json()
-                # Print directly to stderr so Dagster intercepts it
-                print("\n" + "="*50, file=sys.stderr)
-                print("TROJAN HORSE: INTERCEPTED TWILIO API PAYLOAD",
-                      file=sys.stderr)
-                print(f"URL Requested: {response.url}", file=sys.stderr)
-
-                # Let's grab the first 5 records of whatever stream this is (calls, messages, etc)
-                for key, value in raw_data.items():
-                    if isinstance(value, list) and len(value) > 0:
-                        print(
-                            f"\n--- FOUND STREAM: {key.upper()} ---", file=sys.stderr)
-                        for i, record in enumerate(value[:5]):
-                            print(
-                                f"Record {i+1}: {json.dumps(record)}", file=sys.stderr)
-
-                print("="*50 + "\n", file=sys.stderr)
-            except Exception as e:
-                print(f"TROJAN HORSE FAILED TO PARSE: {e}", file=sys.stderr)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 
         if response.status_code >= 500:
